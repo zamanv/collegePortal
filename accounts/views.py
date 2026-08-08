@@ -3,7 +3,7 @@ from .forms import createuserform
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
-from students.models import student_profile
+from students.models import student_profile  # ✅ Lowercase
 from faculty.models import faculty_profile
 from django.contrib.auth.decorators import login_required
 
