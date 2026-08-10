@@ -1,10 +1,10 @@
 from django.urls import path
 from . import views
+from django.shortcuts import redirect
+
 
 urlpatterns = [
-    # Add this line to map http://127.0.0.1:8000/ directly to login
-    path('', views.login_page, name='home'),
-
+    path('', lambda request: redirect('login_p')),
     path('studentReg/', views.stud_reg, name='stud_reg'),
     path('facultyReg/', views.faculty_reg, name='facu_reg'),
     path('login/', views.login_page, name='login_p'),

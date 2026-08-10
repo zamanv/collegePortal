@@ -1,0 +1,15 @@
+Set-Content -Path vercel.json -Value '{
+  "version": 2,
+  "builds": [
+    {
+      "src": "collegePortal/wsgi.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "collegePortal/wsgi.py"
+    }
+  ]
+}'

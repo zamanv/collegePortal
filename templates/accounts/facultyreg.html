@@ -228,7 +228,7 @@
     </nav>
 
     <div class="container">
-        <form id="reg-form" action="#" method="POST">
+        <form id="reg-form" action="#" method="POST" enctype="multipart/form-data">
             {% csrf_token %}
             <h2>FACULTY REGISTER</h2>
             {% if messages %}

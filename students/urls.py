@@ -21,6 +21,7 @@ from . import views
 urlpatterns = [
     path('studash/',views.dashboard,name='stud_dash' ),
     path('s_profile/',views.s_profile,name='stud_profile'),
-    path('edit_profile/', views.edit_profile, name='edit_profile')
+    path('edit_profile/', views.edit_profile, name='edit_profile'),
+    
 
 ]
