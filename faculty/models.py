@@ -8,4 +8,8 @@ class faculty_profile(models.Model):
     designation=models.CharField(max_length=100, blank=True, null=True)
     department = models.CharField(max_length=100, blank=True)
     ph_no=models.CharField(max_length=15,null=True)
-      
+    profile_image=models.ImageField(
+        upload_to='profile_images',
+        default='default.png',
+        blank=True,
+    )

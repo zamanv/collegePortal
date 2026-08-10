@@ -11,6 +11,11 @@ class student_profile(models.Model):
     roll_no=models.IntegerField(null=True)
     dob=models.DateField(null=True)
     cgpa=models.FloatField(null=True)
+    profile_image=models.ImageField(
+        upload_to='profile_images/',
+        default='default.png',
+        blank=True,
+    )
 
     def __str__(self):
         return f"{self.fullname} ({self.ktu_id or self.user.username})"
