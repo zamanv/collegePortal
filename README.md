@@ -6,6 +6,8 @@ A modular, Django-powered **College Management System (CMS)** designed to digiti
 
 The project is being developed in multiple phases, with **Phase 1 focused on establishing the core architecture, authentication, database foundation, and application structure** required for future academic features.
 
+> 🌐 **Live Deployment:** [https://college-portal-pi.vercel.app](https://college-portal-pi.vercel.app) — hosted on **Vercel** with a **Neon PostgreSQL** database.
+
 ---
 
 ## 📌 Phase 1 — Current Status
@@ -51,7 +53,16 @@ Phase 1 establishes the technical foundation of the College Management System, i
   * Development environment setup
   * Database migration system
   * Static and template configuration
+  * Profile image uploads (`profile_image` on student/faculty profiles with `MEDIA_ROOT`)
   * Application-level separation
+
+* 🚀 **Production Deployment (Vercel)**
+
+  * WSGI-based deployment on Vercel's Python runtime (auto-detected via `manage.py`)
+  * PostgreSQL via **Neon** (`DATABASE_URL` environment variable)
+  * Environment-based settings (`SECRET_KEY`, `DEBUG`, `ALLOWED_HOSTS`, `DATABASE_URL`)
+  * Static files served from the Vercel CDN via `collectstatic` + WhiteNoise
+  * Clean, rebuilt migration history
 
 ---
 
@@ -150,7 +161,12 @@ Planned features:
 ### Database
 
 * **SQLite3** — Development
-* **PostgreSQL** — Production
+* **PostgreSQL** — Production (hosted on **Neon**)
+
+### Hosting
+
+* **Vercel** — WSGI Python runtime, static assets via CDN
+* **Neon** — Managed PostgreSQL
 
 ### Frontend
 
@@ -218,6 +234,8 @@ git clone https://github.com/unni24061-ux/collegePortal.git
 cd collegePortal
 ```
 
+> Development fork: `https://github.com/zamanv/collegePortal.git`
+
 ### 2. Create a Virtual Environment
 
 ```bash
@@ -244,20 +262,37 @@ venv\Scripts\activate
 source venv/bin/activate
 ```
 
-### 4. Install Dependencies
+### 4. Configure Environment Variables (Optional)
+
+Create a `.env` file in the project root to override settings. Everything falls back to
+safe local-development defaults, so this step is optional:
+
+```dotenv
+# SECRET_KEY=change-me-in-production
+# DEBUG=True
+# ALLOWED_HOSTS=127.0.0.1,localhost
+# DATABASE_URL=postgresql://user:password@host:port/dbname
+```
+
+* Without `DATABASE_URL`, the project uses **SQLite** (`db.sqlite3`) for local development.
+* With `DATABASE_URL`, it connects to the **PostgreSQL** database (e.g. your Neon instance).
+
+### 5. Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 5. Apply Migrations
+> `requirements.txt` is intentionally minimal: `Django`, `whitenoise`, `psycopg2-binary`,
+> `python-dotenv`, and `Pillow` (required for `profile_image` uploads).
+
+### 6. Apply Migrations
 
 ```bash
-python manage.py makemigrations
 python manage.py migrate
 ```
 
-### 6. Create an Administrator
+### 7. Create an Administrator
 
 ```bash
 python manage.py createsuperuser
@@ -265,7 +300,7 @@ python manage.py createsuperuser
 
 Follow the prompts to configure the administrator account.
 
-### 7. Start the Development Server
+### 8. Start the Development Server
 
 ```bash
 python manage.py runserver
@@ -276,6 +311,53 @@ The application will normally be available at:
 ```text
 http://127.0.0.1:8000/
 ```
+
+---
+
+## 🚀 Deployment on Vercel
+
+The project is configured for the **Vercel Python runtime**. Vercel auto-detects the
+Django app via `manage.py` and uses `WSGI_APPLICATION` (`collegePortal.wsgi.application`)
+as the entrypoint — no build overrides or `@vercel/python` hacks are needed.
+
+### Prerequisites
+
+* A [Vercel](https://vercel.com) account with the CLI installed (`vercel login`)
+* A **Neon PostgreSQL** database (or any hosted Postgres)
+
+### Environment Variables
+
+Set these on your Vercel project (or in a local `.env` file for development):
+
+| Variable         | Required | Description                                              |
+| ---------------- | :------: | -------------------------------------------------------- |
+| `DATABASE_URL`   | ✅        | PostgreSQL connection string, e.g. Neon's `postgresql://...` |
+| `SECRET_KEY`     | recommended | Django secret key (a fallback exists for local dev)    |
+| `DEBUG`          | optional | Set to `False` in production (defaults to `False`)        |
+| `ALLOWED_HOSTS`  | optional | Comma-separated hosts (defaults include `.vercel.app`)    |
+
+### Deploy
+
+```bash
+vercel login
+vercel deploy --prod
+```
+
+Static files are collected automatically during the build and served from the Vercel
+CDN at `/static/`.
+
+### Migrate the Production Database
+
+From your local machine, point `manage.py` at the production database and run:
+
+```powershell
+$env:DATABASE_URL = "postgresql://user:password@host:port/dbname"
+python manage.py migrate
+```
+
+> **Note:** User-uploaded `profile_image` files are served from local media storage in
+> development. On Vercel's serverless runtime, uploaded files do not persist — wire up a
+> cloud storage backend (e.g. S3 / Cloudinary) when persistent uploads are needed.
 
 ---
 
