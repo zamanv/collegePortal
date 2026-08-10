@@ -12,3 +12,5 @@ venv/
 
 staticfiles/
 media/
+.vercel
+.env*
