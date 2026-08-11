@@ -33,7 +33,7 @@ except ImportError:
 SECRET_KEY = env("SECRET_KEY", "django-insecure-<development-only-key-override-me>")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = env("DEBUG", "True").lower() in ("1", "true", "yes")
+DEBUG = env("DEBUG", "False").lower() in ("1", "true", "yes")
 
 ALLOWED_HOSTS = [
     host.strip()
@@ -116,6 +116,9 @@ if _db_url:
     DATABASES = {
         "default": dj_database_url.parse(_db_url, conn_max_age=600),
     }
+    # Normalize SSL options: Neon requires SSL, and a truncated/malformed
+    # `sslmode` in the connection string would otherwise fail the connection.
+    DATABASES["default"].setdefault("OPTIONS", {})["sslmode"] = "require"
 else:
     _engine = env("DB_ENGINE", "django.db.backends.sqlite3")
     if _engine == "django.db.backends.sqlite3":
