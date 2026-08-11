@@ -183,6 +183,10 @@
                         <div class="info-value">{{ profile.department|default:"--" }}</div>
                     </div>
                     <div class="field-group">
+                        <label>Employee ID</label>
+                        <div class="info-value">{{ profile.employee_id|default:"--" }}</div>
+                    </div>
+                    <div class="field-group">
                         <label>Phone Number</label>
                         <div class="info-value">{{ profile.ph_no|default:"--" }}</div>
                     </div>
@@ -213,7 +217,7 @@
                 </div>
 
                 <label>Full Name</label>
-                <input type="text" name="fullname" value="{{ profile.user.get_full_name }}">
+                <input type="text" name="fullname" value="{{ profile.fullname }}">
 
                 <label>Email Address</label>
                 <input type="email" name="email" value="{{ profile.user.email }}">
@@ -222,10 +226,18 @@
                 <input type="text" name="designation" value="{{ profile.designation | default:'' }}">
 
                 <label>Department</label>
-                <input type="text" name="department" value="{{ profile.department }}">
+                <select name="department" style="width:100%; margin-bottom:12px; padding:8px 10px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px; font-family:'Inter', sans-serif;">
+                    <option value="">-- Select Department --</option>
+                    {% for dept in departments %}
+                        <option value="{{ dept.pk }}" {% if profile.department_id == dept.pk %}selected{% endif %}>{{ dept.name }}</option>
+                    {% endfor %}
+                </select>
+
+                <label>Employee ID</label>
+                <input type="text" name="employee_id" value="{{ profile.employee_id |default:'' }}">
 
                 <label>Phone Number</label>
-                <input type="text" name="phone_number" value="{{ profile.ph_no |default:'' }}">
+                <input type="text" name="ph_no" value="{{ profile.ph_no |default:'' }}">
 
                 <button type="submit" class="action-btn" style="width: 100%; margin-top: 10px; border-radius: 8px;">
                     Save Changes

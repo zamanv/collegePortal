@@ -1,78 +1,91 @@
-from django.shortcuts import render,redirect
-from django.contrib.auth.decorators import login_required
-from .models import *
 from django.contrib import messages
+from django.shortcuts import redirect, render
+
+from accounts.decorators import student_required
+from accounts.validators import (
+    DEFAULT_MAX_IMAGE_SIZE_MB,
+    ImageTypeValidator,
+    MaxImageSizeValidator,
+)
+from faculty.models import course, department
+from students.models import student_profile
 
 # Create your views here.
-@login_required(login_url='login_p')
+
+
+@student_required
 def dashboard(request):
-    return render(request,'students/student_dash.html')
+    return render(request, "students/student_dash.html")
 
-@login_required(login_url='login_p')
+
+@student_required
 def s_profile(request):
-    profile = student_profile.objects.get(user=request.user)
-    return render(request,'students/stud_myprofile.html',{'profile':profile})
+    profile = student_profile.objects.filter(user=request.user).first()
+    if profile is None:
+        messages.warning(request, "Your student profile is missing. Please contact an admin.")
+        return redirect("stud_dash")
+    context = {
+        "profile": profile,
+        "departments": department.objects.all(),
+        "courses": course.objects.all(),
+    }
+    return render(request, "students/stud_myprofile.html", context)
 
-@login_required(login_url='login_p')
+
+@student_required
 def edit_profile(request):
-
-    profile = student_profile.objects.get(user=request.user)
+    profile = student_profile.objects.filter(user=request.user).first()
+    if profile is None:
+        messages.warning(request, "Your student profile is missing. Please contact an admin.")
+        return redirect("stud_dash")
 
     if request.method == "POST":
-
-        # Full Name
-        fullname = request.POST.get("fullname")
+        fullname = (request.POST.get("fullname") or "").strip()
         if fullname:
             profile.fullname = fullname
 
-        # Department
-        department = request.POST.get("department")
-        if department:
-            profile.department = department
-        else:
-            profile.department = ""
+        department_id = request.POST.get("department")
+        profile.department = department.objects.filter(pk=department_id).first() if department_id else None
 
-        # KTU ID
-        ktu_id = request.POST.get("ktu_id")
-        if ktu_id:
-            profile.ktu_id = ktu_id
-        else:
-            profile.ktu_id = None
+        course_id = request.POST.get("course")
+        profile.course = course.objects.filter(pk=course_id).first() if course_id else None
 
-        # Phone Number
-        ph_no = request.POST.get("ph_no")
-        if ph_no:
-            profile.ph_no = ph_no
-        else:
-            profile.ph_no = None
+        semester = request.POST.get("semester")
+        profile.semester = int(semester) if semester and semester.isdigit() else None
 
-        # Roll Number
+        ktu_id = (request.POST.get("ktu_id") or "").strip()
+        profile.ktu_id = ktu_id or None
+
+        ph_no = (request.POST.get("ph_no") or "").strip()
+        profile.ph_no = ph_no or None
+
         roll_no = request.POST.get("roll_no")
-        if roll_no:
-            profile.roll_no = roll_no
-        else:
-            profile.roll_no = None
+        profile.roll_no = int(roll_no) if roll_no and roll_no.isdigit() else None
 
-        # Date of Birth
         dob = request.POST.get("dob")
-        if dob:
-            profile.dob = dob
-        else:
-            profile.dob = None
+        profile.dob = dob or None
 
-        # CGPA
         cgpa = request.POST.get("cgpa")
-        if cgpa:
-            profile.cgpa = cgpa
-        else:
-            profile.cgpa = None
+        profile.cgpa = float(cgpa) if cgpa else None
 
-        # Profile Image
-        if request.FILES.get("profile_image"):
-            profile.profile_image = request.FILES.get("profile_image")
+        image = request.FILES.get("profile_image")
+        if image:
+            type_validator = ImageTypeValidator()
+            size_validator = MaxImageSizeValidator(max_mb=DEFAULT_MAX_IMAGE_SIZE_MB)
+            try:
+                type_validator(image)
+                size_validator(image)
+            except Exception as exc:
+                messages.error(request, str(exc))
+                return redirect("stud_profile")
+            profile.profile_image = image
 
-        # Save everything
-        profile.save()
+        try:
+            profile.save()
+            messages.success(request, "Profile updated successfully!")
+        except Exception:
+            messages.error(request, "Could not save profile. Please check the values.")
+            return redirect("stud_profile")
 
         return redirect("stud_profile")
 

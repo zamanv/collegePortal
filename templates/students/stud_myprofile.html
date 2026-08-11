@@ -180,6 +180,14 @@
                         <div class="info-value">{{ profile.department|default:"--" }}</div>
                     </div>
                     <div class="field-group">
+                        <label>Course</label>
+                        <div class="info-value">{{ profile.course|default:"--" }}</div>
+                    </div>
+                    <div class="field-group">
+                        <label>Semester</label>
+                        <div class="info-value">{{ profile.semester|default:"--" }}</div>
+                    </div>
+                    <div class="field-group">
                         <label>Roll Number</label>
                         <div class="info-value">{{ profile.roll_no|default:"--" }}</div>
                     </div>
@@ -219,7 +227,23 @@
                 <input type="text" name="fullname" value="{{ profile.fullname }}">
 
                 <label>Department</label>
-                <input type="text" name="department" value="{{ profile.department }}">
+                <select name="department" style="width:100%; margin-bottom:12px; padding:8px 10px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px; font-family:'Inter', sans-serif;">
+                    <option value="">-- Select Department --</option>
+                    {% for dept in departments %}
+                        <option value="{{ dept.pk }}" {% if profile.department_id == dept.pk %}selected{% endif %}>{{ dept.name }}</option>
+                    {% endfor %}
+                </select>
+
+                <label>Course</label>
+                <select name="course" style="width:100%; margin-bottom:12px; padding:8px 10px; box-sizing:border-box; border:1px solid #ccc; border-radius:4px; font-family:'Inter', sans-serif;">
+                    <option value="">-- Select Course --</option>
+                    {% for c in courses %}
+                        <option value="{{ c.pk }}" {% if profile.course_id == c.pk %}selected{% endif %}>{{ c.name }} ({{ c.code }})</option>
+                    {% endfor %}
+                </select>
+
+                <label>Semester</label>
+                <input type="number" min="1" max="8" name="semester" value="{{ profile.semester }}">
 
                 <label>KTU ID</label>
                 <input type="text" name="ktu_id" value="{{ profile.ktu_id }}">

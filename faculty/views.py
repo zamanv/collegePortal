@@ -1,63 +1,77 @@
-from django.shortcuts import render,redirect
-from django.contrib.auth.decorators import login_required
-from . models import faculty_profile
 from django.contrib import messages
+from django.shortcuts import redirect, render
 
-
+from accounts.decorators import teacher_required
+from accounts.validators import (
+    DEFAULT_MAX_IMAGE_SIZE_MB,
+    ImageTypeValidator,
+    MaxImageSizeValidator,
+)
+from faculty.models import department, faculty_profile
 
 # Create your views here.
-@login_required(login_url='login_p')
+
+
+@teacher_required
 def dashboard(request):
-    return render(request,'faculty/faculty_dash.html')
+    return render(request, "faculty/faculty_dash.html")
 
-@login_required(login_url='login_p')
+
+@teacher_required
 def f_profile(request):
-    profile = faculty_profile.objects.get(user=request.user)
-    return render(request,'faculty/faculty_myprofile.html',{'profile':profile})
+    profile = faculty_profile.objects.filter(user=request.user).first()
+    if profile is None:
+        messages.warning(request, "Your faculty profile is missing. Please contact an admin.")
+        return redirect("facu_dash")
+    context = {
+        "profile": profile,
+        "departments": department.objects.all(),
+    }
+    return render(request, "faculty/faculty_myprofile.html", context)
 
 
-@login_required(login_url='login_p')
+@teacher_required
 def f_edit_profile(request):
-
-    profile = faculty_profile.objects.get(user=request.user)
+    profile = faculty_profile.objects.filter(user=request.user).first()
+    if profile is None:
+        messages.warning(request, "Your faculty profile is missing. Please contact an admin.")
+        return redirect("facu_dash")
 
     if request.method == "POST":
+        fullname = (request.POST.get("fullname") or "").strip()
+        profile.fullname = fullname or None
 
-        fullname = request.POST.get("fullname")
-        if profile:
-            profile.fullname=fullname
-        
-        
-        
-        department = request.POST.get("department")
-        if department:
-            profile.department=department
-        else:
-            profile.department=None
+        department_id = request.POST.get("department")
+        profile.department = department.objects.filter(pk=department_id).first() if department_id else None
 
-        designation = request.POST.get("designation")
-        if designation:
-            profile.designation=designation
-        else:
-            profile.designation=None
+        designation = (request.POST.get("designation") or "").strip()
+        profile.designation = designation or None
 
-        ph_no = request.POST.get("phone_number")
-        if ph_no:
-            profile.ph_no=ph_no
-        else:
-            profile.ph_no=None
+        employee_id = (request.POST.get("employee_id") or "").strip()
+        profile.employee_id = employee_id or None
 
-        if request.FILES.get("profile_image"):
-            profile.profile_image=request.FILES.get("profile_image")
-        profile.save()
+        ph_no = (request.POST.get("ph_no") or "").strip()
+        profile.ph_no = ph_no or None
 
-        email = request.POST.get("email")
+        email = (request.POST.get("email") or "").strip()
         if email:
             request.user.email = email
             request.user.save()
 
-        messages.success(request, "Profile updated successfully!")
+        image = request.FILES.get("profile_image")
+        if image:
+            type_validator = ImageTypeValidator()
+            size_validator = MaxImageSizeValidator(max_mb=DEFAULT_MAX_IMAGE_SIZE_MB)
+            try:
+                type_validator(image)
+                size_validator(image)
+            except Exception as exc:
+                messages.error(request, str(exc))
+                return redirect("facu_profile")
+            profile.profile_image = image
 
+        profile.save()
+        messages.success(request, "Profile updated successfully!")
         return redirect("facu_profile")
 
     return redirect("facu_profile")
