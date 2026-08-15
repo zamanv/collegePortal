@@ -20,11 +20,6 @@ class DepartmentAdmin(admin.ModelAdmin):
     ordering = ("name",)
     readonly_fields = ("created_at", "updated_at")
 
-    def get_courses_count(self, obj):
-        return obj.courses.count()
-
-    get_courses_count.short_description = "Courses"
-
 
 @admin.register(course)
 class CourseAdmin(admin.ModelAdmin):

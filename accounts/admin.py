@@ -25,6 +25,7 @@ class UserAdmin(BaseUserAdmin):
     search_fields = ("username", "email", "first_name", "last_name")
     ordering = ("-date_joined",)
     inlines = [StudentProfileInline, FacultyProfileInline]
+    actions = ["approve_selected_teachers"]
 
     fieldsets = BaseUserAdmin.fieldsets + (
         ("Portal role", {"fields": ("role",)}),
@@ -32,6 +33,11 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = BaseUserAdmin.add_fieldsets + (
         ("Portal role", {"fields": ("role",)}),
     )
+
+    @admin.action(description="Approve selected teachers (activate accounts)")
+    def approve_selected_teachers(self, request, queryset):
+        count = queryset.filter(role="teacher", is_active=False).update(is_active=True)
+        self.message_user(request, f"Activated {count} teacher account(s).")
 
 
 @admin.register(AuditLog)

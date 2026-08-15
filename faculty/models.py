@@ -94,7 +94,6 @@ class faculty_profile(models.Model):
     ph_no = models.CharField(max_length=15, null=True, blank=True)
     profile_image = models.ImageField(
         upload_to="profile_images",
-        default="default.png",
         blank=True,
         validators=[ImageTypeValidator(), MaxImageSizeValidator()],
     )

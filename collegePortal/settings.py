@@ -99,8 +99,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "collegePortal.wsgi.application"
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
@@ -165,7 +163,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE = "Asia/Kolkata"
 
 USE_I18N = True
 

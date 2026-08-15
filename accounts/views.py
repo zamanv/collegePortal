@@ -1,11 +1,16 @@
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.core.cache import cache
 from django.shortcuts import redirect, render
 
 from accounts.forms import createuserform
 from accounts.models import User
 from faculty.models import faculty_profile
 from students.models import student_profile
+
+MAX_LOGIN_ATTEMPTS = 5
+LOGIN_LOCKOUT_SECONDS = 300
+_LOGIN_ATTEMPTS_KEY = "login_failed_attempts:%s"
 
 
 def _route_authenticated_user(request, user):
@@ -70,12 +75,17 @@ def faculty_reg(request):
         if form.is_valid():
             user = form.save(commit=False)
             user.role = User.Role.TEACHER
+            # Teachers must be approved by an admin before they can log in.
+            user.is_active = False
             user.save()
             form.save_m2m()
 
             faculty_profile.objects.create(user=user)
 
-            messages.success(request, "Faculty registered successfully.")
+            messages.success(
+                request,
+                "Faculty registered successfully. Your account is pending admin approval.",
+            )
             return redirect("login_p")
 
         messages.error(request, "Registration failed. Please correct the errors below.")
@@ -89,16 +99,36 @@ def faculty_reg(request):
 # Login
 def login_page(request):
     if request.method == "POST":
-        username = request.POST.get("username")
+        username = (request.POST.get("username") or "").strip()
         password = request.POST.get("password")
+
+        key = _LOGIN_ATTEMPTS_KEY % username
+        failed = cache.get(key, 0)
+
+        if failed >= MAX_LOGIN_ATTEMPTS:
+            messages.error(
+                request,
+                "Too many failed attempts. Please try again in 5 minutes.",
+            )
+            return render(request, "accounts/login.html")
 
         user = authenticate(username=username, password=password)
 
         if user is not None:
+            cache.delete(key)
             login(request, user)
             return _route_authenticated_user(request, user)
 
-        messages.error(request, "Invalid username or password.")
+        cache.set(key, failed + 1, LOGIN_LOCKOUT_SECONDS)
+
+        existing = User.objects.filter(username=username).first()
+        if existing is not None and not existing.is_active:
+            messages.error(
+                request,
+                "Your account is pending admin approval. Please wait for an admin to activate it.",
+            )
+        else:
+            messages.error(request, "Invalid username or password.")
 
     return render(request, "accounts/login.html")
 

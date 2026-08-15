@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.test import TestCase
+from django.urls import reverse
 from django.utils import timezone
 
 from accounts.models import User
@@ -135,3 +136,59 @@ class CleanupTests(QRAttendanceBase):
         self.assertEqual(sessions_closed, 1)
         stale_session.refresh_from_db()
         self.assertEqual(stale_session.status, attendance_session.Status.CLOSED)
+
+
+class FacultyProfileEditTests(TestCase):
+    def setUp(self):
+        self.dept = department.objects.create(name="Computer Science", code="CS")
+        self.teacher = User.objects.create_user(username="t", password="testpass123")
+        self.teacher.role = User.Role.TEACHER
+        self.teacher.save(update_fields=["role"])
+        self.profile = faculty_profile.objects.create(user=self.teacher)
+        self.client.force_login(self.teacher)
+
+    def test_edit_profile_updates_fields_and_email(self):
+        response = self.client.post(
+            reverse("f_edit"),
+            {
+                "fullname": "Dr. Adil Zaman",
+                "email": "adil@college.edu",
+                "designation": "Associate Professor",
+                "department": self.dept.pk,
+                "employee_id": "EMP123",
+                "ph_no": "9876543210",
+            },
+        )
+        self.assertRedirects(response, reverse("facu_profile"))
+        self.profile.refresh_from_db()
+        self.teacher.refresh_from_db()
+        self.assertEqual(self.profile.fullname, "Dr. Adil Zaman")
+        self.assertEqual(self.profile.designation, "Associate Professor")
+        self.assertEqual(self.profile.department, self.dept)
+        self.assertEqual(self.profile.employee_id, "EMP123")
+        self.assertEqual(self.teacher.email, "adil@college.edu")
+
+    def test_profile_renders_initials_avatar_without_image(self):
+        self.profile.fullname = "Adil Zaman"
+        self.profile.save(update_fields=["fullname"])
+        response = self.client.get(reverse("facu_profile"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'class="avatar"')
+        self.assertContains(response, "AZ")
+        self.assertNotContains(response, "default.png")
+
+    def test_edit_profile_rejects_non_image_upload(self):
+        from django.core.files.uploadedfile import SimpleUploadedFile
+
+        response = self.client.post(
+            reverse("f_edit"),
+            {
+                "fullname": "Dr. Adil Zaman",
+                "profile_image": SimpleUploadedFile(
+                    "x.txt", b"not an image", content_type="text/plain"
+                ),
+            },
+        )
+        self.assertRedirects(response, reverse("facu_profile"))
+        self.profile.refresh_from_db()
+        self.assertFalse(self.profile.profile_image)

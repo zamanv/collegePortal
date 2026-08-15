@@ -1,3 +1,4 @@
+from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse
@@ -40,6 +41,11 @@ class RoleHelperTests(TestCase):
 
 
 class LoginRoutingTests(TestCase):
+    def setUp(self):
+        # The login throttle lives in the process-wide LocMemCache; clear it so
+        # failed-attempt counters don't leak between tests.
+        cache.clear()
+
     def test_admin_routes_to_admin_index(self):
         User.objects.create_superuser("a", "a@x.com", "testpass123")
         response = self.client.post(
@@ -87,6 +93,39 @@ class LoginRoutingTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Invalid username or password")
 
+    def test_login_throttled_after_max_attempts(self):
+        create_user("throttled")
+        for _ in range(5):
+            self.client.post(
+                reverse("login_p"), {"username": "throttled", "password": "wrongpass"}
+            )
+        response = self.client.post(
+            reverse("login_p"), {"username": "throttled", "password": "wrongpass"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Too many failed attempts")
+
+    def test_pending_teacher_login_shows_approval_message(self):
+        teacher = create_user("t", "teacher")
+        teacher.is_active = False
+        teacher.save(update_fields=["is_active"])
+        response = self.client.post(
+            reverse("login_p"), {"username": "t", "password": "testpass123"}
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "pending admin approval")
+
+    def test_inactive_teacher_cannot_log_in(self):
+        teacher = create_user("t", "teacher")
+        teacher.is_active = False
+        teacher.save(update_fields=["is_active"])
+        self.client.post(
+            reverse("login_p"), {"username": "t", "password": "testpass123"}
+        )
+        response = self.client.get(reverse("facu_dash"))
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("login_p"), response.url)
+
 
 class RegistrationTests(TestCase):
     def test_student_registration_sets_role_and_creates_profile(self):
@@ -118,6 +157,25 @@ class RegistrationTests(TestCase):
         user = User.objects.get(username="newfac")
         self.assertEqual(user.role, User.Role.TEACHER)
         self.assertTrue(faculty_profile.objects.filter(user=user).exists())
+        self.assertFalse(user.is_active)  # pending admin approval
+
+    def test_admin_action_approves_inactive_teachers(self):
+        User.objects.create_superuser("root", "root@x.com", "su-per-pass1")
+        teacher = create_user("t", "teacher")
+        teacher.is_active = False
+        teacher.save(update_fields=["is_active"])
+        self.client.force_login(User.objects.get(username="root"))
+        response = self.client.post(
+            reverse("admin:accounts_user_changelist"),
+            {
+                "action": "approve_selected_teachers",
+                "_selected_action": [str(teacher.pk)],
+            },
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        teacher.refresh_from_db()
+        self.assertTrue(teacher.is_active)
 
 
 class AuditLogTests(TestCase):

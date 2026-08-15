@@ -22,6 +22,6 @@ urlpatterns = [
     path('studash/',views.dashboard,name='stud_dash' ),
     path('s_profile/',views.s_profile,name='stud_profile'),
     path('edit_profile/', views.edit_profile, name='edit_profile'),
-    
-
+    path('grades/', views.grades, name='stud_grades'),
+    path('attendance/', views.attendance_history, name='stud_attendance'),
 ]

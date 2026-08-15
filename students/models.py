@@ -33,7 +33,6 @@ class student_profile(models.Model):
     cgpa = models.FloatField(null=True, blank=True)
     profile_image = models.ImageField(
         upload_to="profile_images/",
-        default="default.png",
         blank=True,
         validators=[ImageTypeValidator(), MaxImageSizeValidator()],
     )

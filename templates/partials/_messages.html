@@ -1,0 +1,72 @@
+{% if messages %}
+<div class="msg-list" aria-live="polite">
+    {% for message in messages %}
+    <div class="msg {{ message.tags }}">
+        <span>{{ message }}</span>
+        <button type="button" class="msg-close" aria-label="Dismiss">&times;</button>
+    </div>
+    {% endfor %}
+</div>
+<style>
+    .msg-list {
+        position: fixed;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 2000;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        width: calc(100% - 32px);
+        max-width: 440px;
+        pointer-events: none;
+    }
+    .msg {
+        pointer-events: auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        color: #fff;
+        padding: 12px 16px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        font-family: 'Inter', sans-serif;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        animation: msg-in 0.3s ease;
+        transition: opacity 0.3s ease;
+    }
+    .msg.error, .msg.danger { background: #d9534f; }
+    .msg.success { background: #28a745; }
+    .msg.warning { background: #f0ad4e; }
+    .msg.info { background: #0275d8; }
+    .msg-close {
+        background: none;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        font-size: 20px;
+        line-height: 1;
+        padding: 0;
+        margin: 0;
+    }
+    @keyframes msg-in {
+        from { opacity: 0; transform: translateY(-12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+<script>
+    (function () {
+        document.querySelectorAll('.msg').forEach(function (msg) {
+            var hide = function () {
+                msg.style.opacity = '0';
+                setTimeout(function () { msg.remove(); }, 300);
+            };
+            var closeBtn = msg.querySelector('.msg-close');
+            if (closeBtn) closeBtn.addEventListener('click', hide);
+            setTimeout(hide, 5000);
+        });
+    })();
+</script>
+{% endif %}

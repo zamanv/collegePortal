@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade Report</title>
+    <link href="https://fonts.googleapis.com/css2?family=League+Gothic&family=Sen:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; background-color: #f9f9f9; }
+
+        nav.top-nav {
+            width: 100%;
+            height: 60px;
+            background: #000;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+            box-sizing: border-box;
+            flex-shrink: 0;
+        }
+        .logo { font-family: 'League Gothic', sans-serif; font-size: 28px; letter-spacing: 1.5px; text-transform: capitalize; }
+        .welname { font-size: 14px; font-weight: 500; color: #ccc; }
+
+        .app-layout { display: flex; flex: 1; height: calc(100vh - 60px); overflow: hidden; }
+
+        aside { width: 250px; background: #fff; border-right: 2px solid #000; display: flex; flex-direction: column; padding: 25px; box-sizing: border-box; }
+        aside h2 { font-family: 'Sen', sans-serif; font-size: 18px; font-weight: 700; margin-top: 0; margin-bottom: 30px; text-align: center; }
+        aside nav { display: flex; flex-direction: column; gap: 15px; }
+        aside a { text-decoration: none; color: #333; font-weight: 600; font-size: 14px; padding: 10px; border-radius: 4px; border: 1px solid transparent; }
+        aside a:hover, aside a.active { border: 1px solid #000; background: #000; color: #fff; }
+
+        main { flex: 1; display: flex; flex-direction: column; padding: 35px; box-sizing: border-box; overflow-y: auto; }
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #000; padding-bottom: 20px; margin-bottom: 30px; }
+        header h1 { margin: 0; font-size: 24px; font-family: 'Sen', sans-serif; font-weight: 700; }
+        .status-pill { font-weight: 600; font-size: 13px; border: 1px solid #000; padding: 6px 14px; border-radius: 999px; }
+
+        .sem-card { border: 2px solid #000; border-radius: 8px; background: #fff; margin-bottom: 25px; overflow: hidden; }
+        .sem-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 22px; border-bottom: 2px solid #000; background: #fff; }
+        .sem-head h2 { margin: 0; font-family: 'Sen', sans-serif; font-size: 17px; font-weight: 700; }
+        .gpa-chip { font-weight: 700; font-size: 13px; border: 2px solid #000; border-radius: 999px; padding: 5px 14px; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { text-align: left; font-family: 'Sen', sans-serif; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #555; padding: 12px 22px; border-bottom: 1px solid #eee; }
+        td { padding: 12px 22px; border-bottom: 1px solid #eee; }
+        tr:last-child td { border-bottom: none; }
+
+        .empty { color: #888; font-size: 14px; padding: 20px 0; }
+        .back-link { display: inline-block; margin-bottom: 25px; color: #000; font-weight: 600; font-size: 14px; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    {% include 'partials/_messages.html' %}
+
+    <nav class="top-nav">
+        <div class="logo">College portal.</div>
+        <div class="welname">Hello {{ request.user.get_username }}</div>
+    </nav>
+
+    <div class="app-layout">
+        <aside>
+            <h2>STUDENT PORTAL</h2>
+            <nav>
+                <a href="{% url 'stud_dash' %}">Dashboard</a>
+                <a href="{% url 'stud_profile' %}">My Profile</a>
+                <a href="{% url 'stud_grades' %}" class="active">Grade Report</a>
+                <a href="{% url 'stud_attendance' %}">Attendance</a>
+                <a href="{% url 'logout' %}" style="margin-top: auto; color: #d9534f; border-color: #d9534f;">Logout</a>
+            </nav>
+        </aside>
+
+        <main>
+            <header>
+                <h1>Grade Report</h1>
+                <span class="status-pill">CGPA: {{ overall_cgpa|default:"--" }}</span>
+            </header>
+
+            <a href="{% url 'stud_dash' %}" class="back-link">&larr; Back to Dashboard</a>
+
+            {% if grade_count == 0 %}
+                <div class="card" style="border:2px solid #000; border-radius:8px; background:#fff; padding:25px;">
+                    <div class="empty">No grades have been recorded for your profile yet.</div>
+                </div>
+            {% else %}
+                {% for block in semester_blocks %}
+                    <div class="sem-card">
+                        <div class="sem-head">
+                            <h2>Semester {{ block.semester }}</h2>
+                            <span class="gpa-chip">GPA: {{ block.gpa|default:"--" }}</span>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Code</th>
+                                    <th>Credits</th>
+                                    <th>Marks</th>
+                                    <th>Grade</th>
+                                    <th>Grade Point</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for g in block.grades %}
+                                <tr>
+                                    <td>{{ g.subject.name }}</td>
+                                    <td>{{ g.subject.code }}</td>
+                                    <td>{{ g.subject.credits|floatformat:1 }}</td>
+                                    <td>{{ g.marks|default:"--" }}</td>
+                                    <td>{{ g.grade_value|default:"--" }}</td>
+                                    <td>{{ g.grade_point|default:"--" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </main>
+    </div>
+
+</body>
+</html>

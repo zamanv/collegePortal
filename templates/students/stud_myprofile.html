@@ -117,11 +117,27 @@
             object-fit: cover;
         }
 
+        .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #000;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Sen', sans-serif;
+            font-size: 36px;
+            font-weight: 700;
+        }
+
         .action-btn { padding: 10px 16px; background: #000; color: #fff; border: none; cursor: pointer; border-radius: 4px; font-size: 14px; font-weight: 500; text-decoration: none; display: inline-block; font-family: 'Inter', sans-serif; margin-top: 20px; }
         .action-btn:hover { opacity: 0.8; }
     </style>
 </head>
 <body>
+
+    {% include 'partials/_messages.html' %}
 
     <nav class="top-nav">
         <div class="logo">College portal.</div>
@@ -134,8 +150,8 @@
             <nav>
                 <a href="{% url 'stud_dash' %}">Dashboard</a>
                 <a href="{% url 'stud_profile' %}" class="active">My Profile</a>
-                <a href="">Academic Details</a>
-                <a href="">Notifications</a>
+                <a href="{% url 'stud_grades' %}">Grade Report</a>
+                <a href="{% url 'stud_attendance' %}">Attendance</a>
                 <a href="{% url 'logout' %}" style="margin-top: auto; color: #d9534f; border-color: #d9534f;">Logout</a>
             </nav>
         </aside>
@@ -149,10 +165,10 @@
             <div class="card">
                 <h3>Student Information</h3>
                 <div class="form-grid">
-                {% if profile.profile_image %}
+                {% if has_image %}
                     <img src="{{ profile.profile_image.url }}" alt="Profile Image" class="profile-image">
                 {% else %}
-                    <img src="/media/default.png" alt="Profile Image" class="profile-image">
+                    <div class="avatar">{{ initials }}</div>
                 {% endif %}
 
                     <div class="field-group">
@@ -213,10 +229,10 @@
             <form method="POST" action="{% url 'edit_profile' %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div style="text-align: center; margin-bottom: 20px;">
-                    {% if profile.profile_image %}
+                    {% if has_image %}
                         <img src="{{ profile.profile_image.url }}" alt="Profile Image" class="profile-image">
                     {% else %}
-                        <img src="/media/default.png" alt="Profile Image" class="profile-image">
+                        <div class="avatar">{{ initials }}</div>
                     {% endif %}
                     <br><br>
                     <label>Change Profile Picture</label>

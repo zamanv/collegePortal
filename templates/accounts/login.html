@@ -2,11 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link href="https://fonts.googleapis.com/css2?family=League+Gothic&family=Sen:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; display: flex; flex-direction: column; height: 100vh; margin: 0; background-color: #f9f9f9; }
-        
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f9f9f9;
+        }
+
         /* Navbar styling */
         nav {
             width: 100%;
@@ -31,7 +40,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            position: relative;
+            padding: 40px 20px;
         }
 
         /* Page Load Fade-In Slide Animation */
@@ -41,39 +50,35 @@
         }
 
         /* The main outer form box */
-        form { 
-            display: flex; 
-            flex-direction: column; 
-            width: 360px; 
-            gap: 15px; 
-            border: 2px solid #000; 
-            padding: 35px; 
-            box-sizing: border-box; 
-            border-radius: 8px; 
-            background: #fff; 
-            position: relative;
+        form {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 360px;
+            gap: 15px;
+            border: 2px solid #000;
+            padding: 35px;
+            box-sizing: border-box;
+            border-radius: 8px;
+            background: #fff;
             box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             animation: slideUpFade 0.6s ease forwards;
         }
-        
+
         .field-group { display: flex; flex-direction: column; gap: 5px; }
         label { font-size: 13px; font-weight: 600; color: #333; }
-        
+
         /* Input container for Show/Hide Password */
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
+        .input-wrapper { position: relative; display: flex; align-items: center; }
 
         /* Input fields with Focus Glow/Border */
-        input { 
+        input {
             width: 100%;
-            padding: 10px; 
-            font-size: 14px; 
-            border: 1px solid #ccc; 
-            border-radius: 4px; 
-            font-family: 'Inter', sans-serif; 
+            padding: 10px;
+            font-size: 14px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: 'Inter', sans-serif;
             outline: none;
             transition: border-color 0.3s ease, box-shadow 0.3s ease;
         }
@@ -81,7 +86,7 @@
             border-color: #000;
             box-shadow: 0 0 0 3px rgba(0,0,0,0.1);
         }
-        
+
         /* Toggle Password Visibility Icon Button */
         .toggle-password {
             position: absolute;
@@ -93,121 +98,67 @@
             font-weight: 600;
             color: #666;
             padding: 4px;
-            margin-top: 0 !important;
+            margin: 0;
         }
-        .toggle-password:hover {
-            color: #000;
+        .toggle-password:hover { color: #000; }
+
+        button {
+            padding: 10px;
+            background: #000;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            transition: background 0.2s, transform 0.1s, opacity 0.2s;
+        }
+        button:hover { background: #222; }
+        button:active { transform: scale(0.98); }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        h2 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-family: 'Sen', sans-serif;
+            font-size: 22px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
         }
 
-        button { 
-            padding: 10px; 
-            background: #000; 
-            color: #fff; 
-            border: none; 
-            cursor: pointer; 
-            border-radius: 4px; 
-            margin-top: 10px; 
-            font-weight: 500; 
-            font-family: 'Inter', sans-serif; 
-            transition: background 0.2s, transform 0.1s;
-        }
-        button:hover {
-            background: #222;
-        }
-        button:active {
-            transform: scale(0.98);
-        }
-
-        h2 { text-align: center; margin-top: 0; margin-bottom: 20px; font-family: 'Sen', sans-serif; font-size: 22px; font-weight: 700; letter-spacing: 0.5px; }
-        
         .signup-link {
             text-align: center;
             font-size: 13px;
             color: #666;
             margin-top: 5px;
         }
-        .signup-link a {
-            color: #000;
-            font-weight: 600;
-            text-decoration: underline;
-        }
+        .signup-link a { color: #000; font-weight: 600; text-decoration: underline; }
 
-        /* Modern Floating Toast Notification Banner */
-        .toast-banner {
-            position: fixed;
-            top: 20px;
-            right: -300px;
-            background-color: #28a745;
-            color: #fff;
-            padding: 14px 20px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            z-index: 1000;
-            transition: right 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55), opacity 0.5s ease;
-            opacity: 0;
+        @media (max-width: 480px) {
+            nav { padding: 0 20px; }
+            form { padding: 28px 22px; }
+            .container { padding: 24px 16px; }
         }
-        .toast-banner.show {
-            right: 20px;
-            opacity: 1;
-        }
-
-        /* Django messages (error/success) */
-        .msg-list {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 1000;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            width: 90%;
-            max-width: 420px;
-        }
-        .msg-list .msg {
-            color: #fff;
-            padding: 12px 16px;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        }
-        .msg-list .msg.error { background-color: #d9534f; }
-        .msg-list .msg.success { background-color: #28a745; }
     </style>
 </head>
 <body>
 
-    {% if messages %}
-    <div class="msg-list">
-        {% for message in messages %}
-        <div class="msg {{ message.tags }}">{{ message }}</div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <!-- Toast Notification Element -->
-    <div id="toast" class="toast-banner">
-        <span>✓ Registration successful! You can now log in.</span>
-    </div>
+    {% include 'partials/_messages.html' %}
 
     <nav>
         <div class="logo">College portal.</div>
     </nav>
 
     <div class="container">
-        <form id="login-form" action="#" method="POST" enctype="multipart/form-data">
+        <form id="login-form" method="POST">
             {% csrf_token %}
             <h2>LOGIN</h2>
-            
+
             <div class="field-group">
                 <label for="username">Username</label>
-                <input type="text" id="username" name="username" required>
+                <input type="text" id="username" name="username" required autofocus>
             </div>
 
             <div class="field-group">
@@ -218,7 +169,7 @@
                 </div>
             </div>
 
-            <button type="submit">Submit</button>
+            <button type="submit" id="submit-btn">Submit</button>
 
             <div class="signup-link">
                 Don't have an account? <a href="{% url 'stud_reg' %}">Register here</a>
@@ -227,43 +178,22 @@
     </div>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const toast = document.getElementById('toast');
+        document.addEventListener("DOMContentLoaded", function () {
             const passwordInput = document.getElementById('password');
             const toggleBtn = document.getElementById('toggle-btn');
 
-            // Show / Hide Password Toggle Logic
-            toggleBtn.addEventListener('click', function() {
-                if (passwordInput.type === 'password') {
-                    passwordInput.type = 'text';
-                    toggleBtn.textContent = 'Hide';
-                } else {
-                    passwordInput.type = 'password';
-                    toggleBtn.textContent = 'Show';
-                }
+            toggleBtn.addEventListener('click', function () {
+                const show = passwordInput.type === 'password';
+                passwordInput.type = show ? 'text' : 'password';
+                toggleBtn.textContent = show ? 'Hide' : 'Show';
             });
 
-            // Toast Notification Trigger: only for real success messages,
-            // shown once per session via sessionStorage.
-            const successMsg = document.querySelector('.msg-list .msg.success');
-            const hasShownToast = sessionStorage.getItem('registration_toast_shown');
-
-            if (successMsg && !hasShownToast) {
-                toast.querySelector('span').textContent = successMsg.textContent.trim();
-
-                // Mark that the toast has now been shown for this session
-                sessionStorage.setItem('registration_toast_shown', 'true');
-
-                // Slide toast into view
-                setTimeout(function() {
-                    toast.classList.add('show');
-                }, 400);
-
-                // Automatically hide toast after 5 seconds
-                setTimeout(function() {
-                    toast.classList.remove('show');
-                }, 5000);
-            }
+            // Prevent double submit and show a pending state.
+            document.getElementById('login-form').addEventListener('submit', function () {
+                const btn = document.getElementById('submit-btn');
+                btn.disabled = true;
+                btn.textContent = 'Signing in...';
+            });
         });
     </script>
 
